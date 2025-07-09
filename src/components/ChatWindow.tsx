@@ -84,8 +84,8 @@ export function ChatWindow({ contactId }: ChatWindowProps) {
   };
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Header do Chat */}
+    <div className="flex flex-col h-full max-h-screen">
+      {/* Header do Chat - Fixo */}
       <div className="p-4 border-b border-border bg-card flex-shrink-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -106,19 +106,19 @@ export function ChatWindow({ contactId }: ChatWindowProps) {
               <SelectContent>
                 <SelectItem value="pendente">
                   <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-error rounded-full"></div>
+                    <div className="w-2 h-2 bg-red-500 rounded-full"></div>
                     Pendente
                   </div>
                 </SelectItem>
                 <SelectItem value="andamento">
                   <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-warning rounded-full"></div>
+                    <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
                     Em andamento
                   </div>
                 </SelectItem>
                 <SelectItem value="concluido">
                   <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-success rounded-full"></div>
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                     Concluído
                   </div>
                 </SelectItem>
@@ -142,28 +142,30 @@ export function ChatWindow({ contactId }: ChatWindowProps) {
         </div>
       </div>
 
-      {/* Área de Mensagens - Flex-1 para ocupar espaço disponível */}
-      <ScrollArea className="flex-1 p-4">
-        <div className="space-y-4">
-          {mockMessages.map((msg) => (
-            <div
-              key={msg.id}
-              className={`flex ${msg.sender === "agent" ? "justify-end" : "justify-start"}`}
-            >
+      {/* Área de Mensagens - Scrollável */}
+      <div className="flex-1 overflow-hidden">
+        <ScrollArea className="h-full p-4">
+          <div className="space-y-4">
+            {mockMessages.map((msg) => (
               <div
-                className={`max-w-xs px-4 py-2 rounded-lg ${
-                  msg.sender === "agent"
-                    ? "bg-whatsapp text-whatsapp-foreground"
-                    : "bg-muted text-muted-foreground"
-                }`}
+                key={msg.id}
+                className={`flex ${msg.sender === "agent" ? "justify-end" : "justify-start"}`}
               >
-                <p className="text-sm">{msg.text}</p>
-                <p className="text-xs opacity-70 mt-1">{msg.timestamp}</p>
+                <div
+                  className={`max-w-xs px-4 py-2 rounded-lg ${
+                    msg.sender === "agent"
+                      ? "bg-green-500 text-white"
+                      : "bg-muted text-muted-foreground"
+                  }`}
+                >
+                  <p className="text-sm">{msg.text}</p>
+                  <p className="text-xs opacity-70 mt-1">{msg.timestamp}</p>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
-      </ScrollArea>
+            ))}
+          </div>
+        </ScrollArea>
+      </div>
 
       {/* Input de Mensagem - Fixo na parte inferior */}
       <div className="p-4 border-t border-border bg-card flex-shrink-0">
@@ -184,7 +186,7 @@ export function ChatWindow({ contactId }: ChatWindowProps) {
           <Button 
             onClick={handleSendMessage}
             disabled={!message.trim()}
-            className="bg-whatsapp hover:bg-whatsapp-hover text-whatsapp-foreground"
+            className="bg-green-500 hover:bg-green-600 text-white"
           >
             <Send className="w-4 h-4" />
           </Button>

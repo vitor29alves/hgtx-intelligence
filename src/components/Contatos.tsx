@@ -17,7 +17,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { 
   Select,
@@ -109,6 +108,8 @@ export function Contatos() {
     notes: "",
   });
 
+  const [newTag, setNewTag] = useState("");
+
   const resetForm = () => {
     setFormData({
       name: "",
@@ -119,6 +120,7 @@ export function Contatos() {
       notes: "",
     });
     setEditingContact(null);
+    setNewTag("");
   };
 
   const handleOpenDialog = (contact?: Contact) => {
@@ -202,12 +204,13 @@ export function Contatos() {
 
   const allTags = Array.from(new Set(contacts.flatMap(c => c.tags)));
 
-  const addTag = (tag: string) => {
-    if (tag && !formData.tags.includes(tag)) {
+  const addTag = () => {
+    if (newTag.trim() && !formData.tags.includes(newTag.trim())) {
       setFormData(prev => ({
         ...prev,
-        tags: [...prev.tags, tag]
+        tags: [...prev.tags, newTag.trim()]
       }));
+      setNewTag("");
     }
   };
 
@@ -216,6 +219,13 @@ export function Contatos() {
       ...prev,
       tags: prev.tags.filter(t => t !== tag)
     }));
+  };
+
+  const handleTagKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addTag();
+    }
   };
 
   return (
@@ -442,16 +452,17 @@ export function Contatos() {
                   </Badge>
                 ))}
               </div>
-              <Input 
-                placeholder="Digite uma etiqueta e pressione Enter"
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    addTag(e.currentTarget.value);
-                    e.currentTarget.value = '';
-                  }
-                }}
-              />
+              <div className="flex gap-2">
+                <Input 
+                  placeholder="Digite uma etiqueta"
+                  value={newTag}
+                  onChange={(e) => setNewTag(e.target.value)}
+                  onKeyPress={handleTagKeyPress}
+                />
+                <Button type="button" onClick={addTag} variant="outline">
+                  Adicionar
+                </Button>
+              </div>
             </div>
             <div className="space-y-2">
               <Label className="text-sm font-medium">Observações</Label>

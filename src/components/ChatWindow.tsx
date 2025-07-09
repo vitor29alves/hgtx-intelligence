@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -70,7 +71,6 @@ export function ChatWindow({ contactId }: ChatWindowProps) {
 
   const handleSendMessage = () => {
     if (message.trim()) {
-      // Aqui você implementaria o envio da mensagem
       console.log("Enviando mensagem:", message);
       setMessage("");
     }
@@ -86,7 +86,7 @@ export function ChatWindow({ contactId }: ChatWindowProps) {
   return (
     <div className="flex flex-col h-full">
       {/* Header do Chat */}
-      <div className="p-4 border-b border-border bg-card">
+      <div className="p-4 border-b border-border bg-card flex-shrink-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
@@ -142,7 +142,7 @@ export function ChatWindow({ contactId }: ChatWindowProps) {
         </div>
       </div>
 
-      {/* Área de Mensagens */}
+      {/* Área de Mensagens - Flex-1 para ocupar espaço disponível */}
       <ScrollArea className="flex-1 p-4">
         <div className="space-y-4">
           {mockMessages.map((msg) => (
@@ -165,8 +165,8 @@ export function ChatWindow({ contactId }: ChatWindowProps) {
         </div>
       </ScrollArea>
 
-      {/* Input de Mensagem */}
-      <div className="p-4 border-t border-border bg-card">
+      {/* Input de Mensagem - Fixo na parte inferior */}
+      <div className="p-4 border-t border-border bg-card flex-shrink-0">
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="sm">
             <Paperclip className="w-4 h-4" />

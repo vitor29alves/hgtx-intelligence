@@ -1,9 +1,11 @@
+
 import { useState } from "react";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { DashboardHeader } from "@/components/DashboardHeader";
 import { Atendimentos } from "@/components/Atendimentos";
 import { Contatos } from "@/components/Contatos";
+import { CRM } from "@/components/CRM";
 import { Relatorios } from "@/components/Relatorios";
 import { Configuracoes } from "@/components/Configuracoes";
 
@@ -16,6 +18,8 @@ export default function Dashboard() {
         return <Atendimentos />;
       case "contatos":
         return <Contatos />;
+      case "crm":
+        return <CRM />;
       case "relatorios":
         return <Relatorios />;
       case "configuracoes":

@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,10 +12,10 @@ export function Atendimentos() {
   const [selectedContact, setSelectedContact] = useState<string | null>(null);
 
   return (
-    <div className="h-full flex bg-background">
+    <div className="h-screen flex bg-background overflow-hidden">
       {/* Coluna 1 - Lista de Conversas */}
-      <div className="w-80 border-r border-border bg-card">
-        <div className="p-4 border-b border-border">
+      <div className="w-80 border-r border-border bg-card flex flex-col">
+        <div className="p-4 border-b border-border flex-shrink-0">
           <h2 className="font-semibold text-lg mb-4">Conversas</h2>
           <Tabs defaultValue="novos" className="w-full">
             <TabsList className="grid w-full grid-cols-3">
@@ -57,7 +58,7 @@ export function Atendimentos() {
       </div>
 
       {/* Coluna 2 - Chat Ativo */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-h-0">
         {selectedContact ? (
           <ChatWindow contactId={selectedContact} />
         ) : (

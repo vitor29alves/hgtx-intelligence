@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,6 +26,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { 
   Search, 
   Plus, 
@@ -36,6 +47,8 @@ import {
   Mail, 
   Instagram 
 } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 interface Contact {
   id: string;
@@ -44,9 +57,10 @@ interface Contact {
   email: string;
   instagram: string;
   tags: string[];
+  notes?: string;
 }
 
-const mockContacts: Contact[] = [
+const initialContacts: Contact[] = [
   {
     id: "1",
     name: "Maria Silva",
@@ -54,6 +68,7 @@ const mockContacts: Contact[] = [
     email: "maria.silva@email.com",
     instagram: "maria_silva",
     tags: ["Cliente VIP", "Urgente"],
+    notes: "Cliente preferencial, sempre compra produtos premium",
   },
   {
     id: "2",
@@ -62,6 +77,7 @@ const mockContacts: Contact[] = [
     email: "joao.santos@email.com",
     instagram: "joao_santos",
     tags: ["Novo Cliente"],
+    notes: "Primeiro contato, interessado em nossos serviços",
   },
   {
     id: "3",
@@ -70,22 +86,137 @@ const mockContacts: Contact[] = [
     email: "ana.costa@email.com",
     instagram: "ana_costa",
     tags: ["Potencial"],
+    notes: "Em negociação, aguardando proposta",
   },
 ];
 
 export function Contatos() {
-  const [contacts, setContacts] = useState<Contact[]>(mockContacts);
+  const [contacts, setContacts] = useState<Contact[]>(initialContacts);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTag, setSelectedTag] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingContact, setEditingContact] = useState<Contact | null>(null);
+  const [deleteContact, setDeleteContact] = useState<Contact | null>(null);
+  const [selectedContacts, setSelectedContacts] = useState<string[]>([]);
 
-  const filteredContacts = contacts.filter(contact => 
-    contact.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    contact.phone.includes(searchTerm) ||
-    contact.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Form states
+  const [formData, setFormData] = useState({
+    name: "",
+    phone: "",
+    email: "",
+    instagram: "",
+    tags: [] as string[],
+    notes: "",
+  });
+
+  const resetForm = () => {
+    setFormData({
+      name: "",
+      phone: "",
+      email: "",
+      instagram: "",
+      tags: [],
+      notes: "",
+    });
+    setEditingContact(null);
+  };
+
+  const handleOpenDialog = (contact?: Contact) => {
+    if (contact) {
+      setEditingContact(contact);
+      setFormData({
+        name: contact.name,
+        phone: contact.phone,
+        email: contact.email,
+        instagram: contact.instagram,
+        tags: contact.tags,
+        notes: contact.notes || "",
+      });
+    } else {
+      resetForm();
+    }
+    setIsDialogOpen(true);
+  };
+
+  const handleSaveContact = () => {
+    if (!formData.name.trim() || !formData.phone.trim()) {
+      alert("Nome e telefone são obrigatórios!");
+      return;
+    }
+
+    if (editingContact) {
+      // Editar contato existente
+      setContacts(contacts.map(contact =>
+        contact.id === editingContact.id
+          ? { ...contact, ...formData }
+          : contact
+      ));
+    } else {
+      // Criar novo contato
+      const newContact: Contact = {
+        id: Date.now().toString(),
+        ...formData,
+      };
+      setContacts([...contacts, newContact]);
+    }
+
+    setIsDialogOpen(false);
+    resetForm();
+  };
+
+  const handleDeleteContact = (contact: Contact) => {
+    setContacts(contacts.filter(c => c.id !== contact.id));
+    setDeleteContact(null);
+  };
+
+  const handleSelectContact = (contactId: string) => {
+    setSelectedContacts(prev =>
+      prev.includes(contactId)
+        ? prev.filter(id => id !== contactId)
+        : [...prev, contactId]
+    );
+  };
+
+  const handleSelectAll = () => {
+    if (selectedContacts.length === filteredContacts.length) {
+      setSelectedContacts([]);
+    } else {
+      setSelectedContacts(filteredContacts.map(c => c.id));
+    }
+  };
+
+  const handleBulkDelete = () => {
+    setContacts(contacts.filter(c => !selectedContacts.includes(c.id)));
+    setSelectedContacts([]);
+  };
+
+  const filteredContacts = contacts.filter(contact => {
+    const matchesSearch = contact.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      contact.phone.includes(searchTerm) ||
+      contact.email.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesTag = !selectedTag || contact.tags.includes(selectedTag);
+    
+    return matchesSearch && matchesTag;
+  });
 
   const allTags = Array.from(new Set(contacts.flatMap(c => c.tags)));
+
+  const addTag = (tag: string) => {
+    if (tag && !formData.tags.includes(tag)) {
+      setFormData(prev => ({
+        ...prev,
+        tags: [...prev.tags, tag]
+      }));
+    }
+  };
+
+  const removeTag = (tag: string) => {
+    setFormData(prev => ({
+      ...prev,
+      tags: prev.tags.filter(t => t !== tag)
+    }));
+  };
 
   return (
     <div className="p-6 space-y-6">
@@ -96,6 +227,12 @@ export function Contatos() {
             Gerencie todos os seus contatos em um só lugar
           </p>
         </div>
+        {selectedContacts.length > 0 && (
+          <Button onClick={handleBulkDelete} variant="destructive">
+            <Trash2 className="w-4 h-4 mr-2" />
+            Excluir Selecionados ({selectedContacts.length})
+          </Button>
+        )}
       </div>
 
       {/* Filtros e Ações */}
@@ -109,7 +246,7 @@ export function Contatos() {
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                 <Input
-                  placeholder="Buscar por nome ou telefone..."
+                  placeholder="Buscar por nome, telefone ou email..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
@@ -130,52 +267,10 @@ export function Contatos() {
             </Select>
             
             <div className="flex gap-2">
-              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button className="bg-primary hover:bg-primary-hover">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Novo Contato
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-md">
-                  <DialogHeader>
-                    <DialogTitle>Novo Contato</DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Nome *</label>
-                      <Input placeholder="Nome completo" />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Telefone *</label>
-                      <Input placeholder="+55 (11) 99999-9999" />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">E-mail</label>
-                      <Input placeholder="email@exemplo.com" />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Instagram</label>
-                      <Input placeholder="@username" />
-                    </div>
-                    <div className="flex gap-2 pt-4">
-                      <Button 
-                        onClick={() => setIsDialogOpen(false)}
-                        variant="outline" 
-                        className="flex-1"
-                      >
-                        Cancelar
-                      </Button>
-                      <Button 
-                        onClick={() => setIsDialogOpen(false)}
-                        className="flex-1 bg-whatsapp hover:bg-whatsapp-hover"
-                      >
-                        Salvar
-                      </Button>
-                    </div>
-                  </div>
-                </DialogContent>
-              </Dialog>
+              <Button onClick={() => handleOpenDialog()} className="bg-primary hover:bg-primary/90">
+                <Plus className="w-4 h-4 mr-2" />
+                Novo Contato
+              </Button>
               
               <Button variant="outline">
                 <Upload className="w-4 h-4 mr-2" />
@@ -203,7 +298,12 @@ export function Contatos() {
             <TableHeader>
               <TableRow>
                 <TableHead className="w-12">
-                  <input type="checkbox" className="rounded" />
+                  <input 
+                    type="checkbox" 
+                    className="rounded"
+                    checked={selectedContacts.length === filteredContacts.length && filteredContacts.length > 0}
+                    onChange={handleSelectAll}
+                  />
                 </TableHead>
                 <TableHead>Nome</TableHead>
                 <TableHead>Telefone</TableHead>
@@ -217,7 +317,12 @@ export function Contatos() {
               {filteredContacts.map((contact) => (
                 <TableRow key={contact.id}>
                   <TableCell>
-                    <input type="checkbox" className="rounded" />
+                    <input 
+                      type="checkbox" 
+                      className="rounded"
+                      checked={selectedContacts.includes(contact.id)}
+                      onChange={() => handleSelectContact(contact.id)}
+                    />
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-3">
@@ -244,7 +349,7 @@ export function Contatos() {
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <Instagram className="w-4 h-4 text-muted-foreground" />
-                      {contact.instagram}
+                      @{contact.instagram}
                     </div>
                   </TableCell>
                   <TableCell>
@@ -258,10 +363,18 @@ export function Contatos() {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-2">
-                      <Button variant="ghost" size="sm">
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => handleOpenDialog(contact)}
+                      >
                         <Edit className="w-4 h-4" />
                       </Button>
-                      <Button variant="ghost" size="sm">
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => setDeleteContact(contact)}
+                      >
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
@@ -272,6 +385,122 @@ export function Contatos() {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Modal Novo/Editar Contato */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {editingContact ? "Editar Contato" : "Novo Contato"}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Nome *</Label>
+              <Input 
+                placeholder="Nome completo"
+                value={formData.name}
+                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Telefone *</Label>
+              <Input 
+                placeholder="+55 (11) 99999-9999"
+                value={formData.phone}
+                onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">E-mail</Label>
+              <Input 
+                placeholder="email@exemplo.com"
+                value={formData.email}
+                onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Instagram</Label>
+              <Input 
+                placeholder="username"
+                value={formData.instagram}
+                onChange={(e) => setFormData(prev => ({ ...prev, instagram: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Etiquetas</Label>
+              <div className="flex flex-wrap gap-1 mb-2">
+                {formData.tags.map((tag, index) => (
+                  <Badge key={index} variant="secondary" className="text-xs">
+                    {tag}
+                    <button 
+                      onClick={() => removeTag(tag)}
+                      className="ml-1 text-muted-foreground hover:text-foreground"
+                    >
+                      ×
+                    </button>
+                  </Badge>
+                ))}
+              </div>
+              <Input 
+                placeholder="Digite uma etiqueta e pressione Enter"
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addTag(e.currentTarget.value);
+                    e.currentTarget.value = '';
+                  }
+                }}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Observações</Label>
+              <Textarea 
+                placeholder="Observações sobre o contato..."
+                value={formData.notes}
+                onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+              />
+            </div>
+            <div className="flex gap-2 pt-4">
+              <Button 
+                onClick={() => setIsDialogOpen(false)}
+                variant="outline" 
+                className="flex-1"
+              >
+                Cancelar
+              </Button>
+              <Button 
+                onClick={handleSaveContact}
+                className="flex-1 bg-primary hover:bg-primary/90"
+              >
+                {editingContact ? "Salvar" : "Criar"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog de Confirmação de Exclusão */}
+      <AlertDialog open={!!deleteContact} onOpenChange={() => setDeleteContact(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir o contato "{deleteContact?.name}"? 
+              Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={() => deleteContact && handleDeleteContact(deleteContact)}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

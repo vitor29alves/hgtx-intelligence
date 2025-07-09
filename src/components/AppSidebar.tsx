@@ -1,4 +1,5 @@
-import { MessageCircle, Users, BarChart3, Settings, LogOut } from "lucide-react";
+
+import { MessageCircle, Users, BarChart3, Settings, LogOut, Kanban } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
@@ -28,6 +29,11 @@ const menuItems = [
     title: "Contatos",
     icon: Users,
     id: "contatos",
+  },
+  {
+    title: "CRM",
+    icon: Kanban,
+    id: "crm",
   },
   {
     title: "Relatórios",

@@ -11,7 +11,11 @@ import {
   Info, 
   Smile, 
   Paperclip,
-  MoreVertical 
+  Mic,
+  MicOff,
+  EyeOff,
+  Eye,
+  X
 } from "lucide-react";
 import {
   Select,
@@ -21,17 +25,34 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { toast } from "@/hooks/use-toast";
 
 interface Message {
   id: string;
   text: string;
   sender: "client" | "agent";
   timestamp: string;
+  type?: "text" | "audio";
+  audioUrl?: string;
 }
 
 interface ChatWindowProps {
@@ -65,13 +86,43 @@ const mockMessages: Message[] = [
   },
 ];
 
+const mockAgents = [
+  { id: "1", name: "João Silva", type: "agent" },
+  { id: "2", name: "Maria Santos", type: "agent" },
+  { id: "3", name: "Pedro Costa", type: "agent" },
+];
+
+const mockTeams = [
+  { id: "1", name: "Suporte Técnico", type: "team" },
+  { id: "2", name: "Vendas", type: "team" },
+  { id: "3", name: "Financeiro", type: "team" },
+];
+
 export function ChatWindow({ contactId }: ChatWindowProps) {
   const [message, setMessage] = useState("");
   const [status, setStatus] = useState("andamento");
+  const [showTransferDialog, setShowTransferDialog] = useState(false);
+  const [showConcludeDialog, setShowConcludeDialog] = useState(false);
+  const [showContactDetails, setShowContactDetails] = useState(true);
+  const [transferTo, setTransferTo] = useState("");
+  const [transferType, setTransferType] = useState<"agent" | "team">("agent");
+  const [transferNotes, setTransferNotes] = useState("");
+  const [isRecording, setIsRecording] = useState(false);
+  const [messages, setMessages] = useState<Message[]>(mockMessages);
 
   const handleSendMessage = () => {
     if (message.trim()) {
-      console.log("Enviando mensagem:", message);
+      const newMessage: Message = {
+        id: Date.now().toString(),
+        text: message,
+        sender: "agent",
+        timestamp: new Date().toLocaleTimeString("pt-BR", { 
+          hour: "2-digit", 
+          minute: "2-digit" 
+        }),
+        type: "text"
+      };
+      setMessages([...messages, newMessage]);
       setMessage("");
     }
   };
@@ -80,6 +131,69 @@ export function ChatWindow({ contactId }: ChatWindowProps) {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
+    }
+  };
+
+  const handleTransfer = () => {
+    if (!transferTo) {
+      toast({
+        title: "Erro",
+        description: "Selecione um destinatário para a transferência",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const selectedOption = transferType === "agent" 
+      ? mockAgents.find(a => a.id === transferTo)
+      : mockTeams.find(t => t.id === transferTo);
+
+    toast({
+      title: "Conversa Transferida",
+      description: `Conversa transferida para ${selectedOption?.name}`,
+    });
+
+    setShowTransferDialog(false);
+    setTransferTo("");
+    setTransferNotes("");
+  };
+
+  const handleConclude = () => {
+    setStatus("concluido");
+    toast({
+      title: "Conversa Concluída",
+      description: "A conversa foi marcada como concluída",
+    });
+    setShowConcludeDialog(false);
+  };
+
+  const toggleRecording = () => {
+    if (!isRecording) {
+      // Iniciar gravação
+      setIsRecording(true);
+      toast({
+        title: "Gravação Iniciada",
+        description: "Gravando áudio...",
+      });
+    } else {
+      // Parar gravação e enviar
+      setIsRecording(false);
+      const audioMessage: Message = {
+        id: Date.now().toString(),
+        text: "Áudio gravado",
+        sender: "agent",
+        timestamp: new Date().toLocaleTimeString("pt-BR", { 
+          hour: "2-digit", 
+          minute: "2-digit" 
+        }),
+        type: "audio",
+        audioUrl: "#" // Em produção, seria a URL real do áudio
+      };
+      setMessages([...messages, audioMessage]);
+      toast({
+        title: "Áudio Enviado",
+        description: "Mensagem de áudio enviada com sucesso",
+      });
     }
   };
 
@@ -125,18 +239,30 @@ export function ChatWindow({ contactId }: ChatWindowProps) {
               </SelectContent>
             </Select>
             
-            <Button variant="outline" size="sm">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setShowTransferDialog(true)}
+            >
               <ArrowRight className="w-4 h-4 mr-2" />
               Transferir
             </Button>
             
-            <Button variant="outline" size="sm">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setShowConcludeDialog(true)}
+            >
               <Check className="w-4 h-4 mr-2" />
               Concluir
             </Button>
             
-            <Button variant="ghost" size="sm">
-              <Info className="w-4 h-4" />
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => setShowContactDetails(!showContactDetails)}
+            >
+              {showContactDetails ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </Button>
           </div>
         </div>
@@ -146,7 +272,7 @@ export function ChatWindow({ contactId }: ChatWindowProps) {
       <div className="flex-1 overflow-hidden">
         <ScrollArea className="h-full p-4">
           <div className="space-y-4">
-            {mockMessages.map((msg) => (
+            {messages.map((msg) => (
               <div
                 key={msg.id}
                 className={`flex ${msg.sender === "agent" ? "justify-end" : "justify-start"}`}
@@ -158,7 +284,16 @@ export function ChatWindow({ contactId }: ChatWindowProps) {
                       : "bg-muted text-muted-foreground"
                   }`}
                 >
-                  <p className="text-sm">{msg.text}</p>
+                  {msg.type === "audio" ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">
+                        <Mic className="w-3 h-3" />
+                      </div>
+                      <span className="text-sm">Mensagem de áudio</span>
+                    </div>
+                  ) : (
+                    <p className="text-sm">{msg.text}</p>
+                  )}
                   <p className="text-xs opacity-70 mt-1">{msg.timestamp}</p>
                 </div>
               </div>
@@ -184,6 +319,13 @@ export function ChatWindow({ contactId }: ChatWindowProps) {
             className="flex-1"
           />
           <Button 
+            variant={isRecording ? "destructive" : "ghost"}
+            size="sm"
+            onClick={toggleRecording}
+          >
+            {isRecording ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+          </Button>
+          <Button 
             onClick={handleSendMessage}
             disabled={!message.trim()}
             className="bg-green-500 hover:bg-green-600 text-white"
@@ -192,6 +334,93 @@ export function ChatWindow({ contactId }: ChatWindowProps) {
           </Button>
         </div>
       </div>
+
+      {/* Dialog de Transferência */}
+      <Dialog open={showTransferDialog} onOpenChange={setShowTransferDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Transferir Conversa</DialogTitle>
+            <DialogDescription>
+              Selecione para quem você deseja transferir esta conversa
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Transferir para</Label>
+              <Select value={transferType} onValueChange={(value: "agent" | "team") => setTransferType(value)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="agent">Atendente</SelectItem>
+                  <SelectItem value="team">Equipe</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
+              <Label>
+                {transferType === "agent" ? "Selecionar Atendente" : "Selecionar Equipe"}
+              </Label>
+              <Select value={transferTo} onValueChange={setTransferTo}>
+                <SelectTrigger>
+                  <SelectValue placeholder={`Selecione ${transferType === "agent" ? "um atendente" : "uma equipe"}`} />
+                </SelectTrigger>
+                <SelectContent>
+                  {transferType === "agent" 
+                    ? mockAgents.map(agent => (
+                        <SelectItem key={agent.id} value={agent.id}>
+                          {agent.name}
+                        </SelectItem>
+                      ))
+                    : mockTeams.map(team => (
+                        <SelectItem key={team.id} value={team.id}>
+                          {team.name}
+                        </SelectItem>
+                      ))
+                  }
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Observações (opcional)</Label>
+              <Textarea
+                placeholder="Adicione informações sobre o contexto da conversa..."
+                value={transferNotes}
+                onChange={(e) => setTransferNotes(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowTransferDialog(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleTransfer}>
+              Transferir
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog de Conclusão */}
+      <AlertDialog open={showConcludeDialog} onOpenChange={setShowConcludeDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Concluir Conversa</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja marcar esta conversa como concluída? 
+              Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConclude}>
+              Concluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

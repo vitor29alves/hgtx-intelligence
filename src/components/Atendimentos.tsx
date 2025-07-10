@@ -1,7 +1,6 @@
 
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ContactList } from "@/components/ContactList";
@@ -10,6 +9,7 @@ import { ContactDetails } from "@/components/ContactDetails";
 
 export function Atendimentos() {
   const [selectedContact, setSelectedContact] = useState<string | null>(null);
+  const [showContactDetails, setShowContactDetails] = useState(true);
 
   return (
     <div className="h-screen flex bg-background overflow-hidden">
@@ -86,10 +86,12 @@ export function Atendimentos() {
         )}
       </div>
 
-      {/* Coluna 3 - Detalhes do Contato */}
-      <div className="w-80 border-l border-border bg-card">
-        <ContactDetails contactId={selectedContact} />
-      </div>
+      {/* Coluna 3 - Detalhes do Contato (Condicional) */}
+      {showContactDetails && (
+        <div className="w-80 border-l border-border bg-card">
+          <ContactDetails contactId={selectedContact} />
+        </div>
+      )}
     </div>
   );
 }

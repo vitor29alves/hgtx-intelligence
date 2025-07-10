@@ -17,6 +17,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { 
   Select,
@@ -48,6 +49,7 @@ import {
 } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { toast } from "@/hooks/use-toast";
 
 interface Contact {
   id: string;
@@ -142,7 +144,11 @@ export function Contatos() {
 
   const handleSaveContact = () => {
     if (!formData.name.trim() || !formData.phone.trim()) {
-      alert("Nome e telefone são obrigatórios!");
+      toast({
+        title: "Erro",
+        description: "Nome e telefone são obrigatórios!",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -153,6 +159,10 @@ export function Contatos() {
           ? { ...contact, ...formData }
           : contact
       ));
+      toast({
+        title: "Sucesso",
+        description: "Contato atualizado com sucesso!",
+      });
     } else {
       // Criar novo contato
       const newContact: Contact = {
@@ -160,6 +170,10 @@ export function Contatos() {
         ...formData,
       };
       setContacts([...contacts, newContact]);
+      toast({
+        title: "Sucesso",
+        description: "Contato criado com sucesso!",
+      });
     }
 
     setIsDialogOpen(false);
@@ -169,6 +183,10 @@ export function Contatos() {
   const handleDeleteContact = (contact: Contact) => {
     setContacts(contacts.filter(c => c.id !== contact.id));
     setDeleteContact(null);
+    toast({
+      title: "Sucesso",
+      description: "Contato excluído com sucesso!",
+    });
   };
 
   const handleSelectContact = (contactId: string) => {
@@ -190,6 +208,10 @@ export function Contatos() {
   const handleBulkDelete = () => {
     setContacts(contacts.filter(c => !selectedContacts.includes(c.id)));
     setSelectedContacts([]);
+    toast({
+      title: "Sucesso",
+      description: `${selectedContacts.length} contatos excluídos com sucesso!`,
+    });
   };
 
   const filteredContacts = contacts.filter(contact => {
@@ -269,7 +291,7 @@ export function Contatos() {
                 <SelectValue placeholder="Filtrar por etiqueta" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todas as etiquetas</SelectItem>
+                <SelectItem value="all">Todas as etiquetas</SelectItem>
                 {allTags.map(tag => (
                   <SelectItem key={tag} value={tag}>{tag}</SelectItem>
                 ))}
@@ -403,6 +425,9 @@ export function Contatos() {
             <DialogTitle>
               {editingContact ? "Editar Contato" : "Novo Contato"}
             </DialogTitle>
+            <DialogDescription>
+              {editingContact ? "Edite as informações do contato" : "Adicione um novo contato"}
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">

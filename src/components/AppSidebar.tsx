@@ -1,5 +1,5 @@
 
-import { MessageCircle, Users, BarChart3, Settings, LogOut, Kanban } from "lucide-react";
+import { MessageCircle, Users, BarChart3, Settings, LogOut, Kanban, Megaphone, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
@@ -36,6 +36,11 @@ const menuItems = [
     id: "crm",
   },
   {
+    title: "Campanhas",
+    icon: Megaphone,
+    id: "campanhas",
+  },
+  {
     title: "Relatórios",
     icon: BarChart3,
     id: "relatorios",
@@ -57,6 +62,10 @@ export function AppSidebar({ activeTab, setActiveTab }: AppSidebarProps) {
       description: "Até logo!",
     });
     navigate("/");
+  };
+
+  const handleProfileClick = () => {
+    setActiveTab("perfil");
   };
 
   return (
@@ -93,9 +102,12 @@ export function AppSidebar({ activeTab, setActiveTab }: AppSidebarProps) {
       </SidebarContent>
       
       <SidebarFooter className="border-t border-sidebar-border p-4">
-        <div className="flex items-center gap-3 mb-4">
+        <div 
+          className="flex items-center gap-3 mb-4 cursor-pointer hover:bg-sidebar-accent rounded-lg p-2 transition-colors"
+          onClick={handleProfileClick}
+        >
           <div className="w-8 h-8 bg-sidebar-primary rounded-full flex items-center justify-center">
-            <span className="text-xs font-medium text-sidebar-primary-foreground">JD</span>
+            <User className="w-4 h-4 text-sidebar-primary-foreground" />
           </div>
           <div>
             <p className="text-sm font-medium text-sidebar-foreground">João Silva</p>

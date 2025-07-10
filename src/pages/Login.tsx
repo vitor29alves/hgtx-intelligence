@@ -1,10 +1,11 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Eye, EyeOff, Mail, Lock } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Login() {
@@ -12,6 +13,9 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const [isResetLoading, setIsResetLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -37,6 +41,103 @@ export default function Login() {
       setIsLoading(false);
     }, 1000);
   };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!resetEmail) {
+      toast({
+        title: "Email obrigatório",
+        description: "Por favor, digite seu email",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validação de email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(resetEmail)) {
+      toast({
+        title: "Email inválido",
+        description: "Por favor, digite um email válido",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsResetLoading(true);
+
+    // Simular envio de email
+    setTimeout(() => {
+      toast({
+        title: "Email enviado!",
+        description: "Verifique sua caixa de entrada para redefinir sua senha",
+      });
+      setShowForgotPassword(false);
+      setResetEmail("");
+      setIsResetLoading(false);
+    }, 1500);
+  };
+
+  if (showForgotPassword) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-primary/10 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md shadow-xl border-0 bg-card/80 backdrop-blur-sm">
+          <CardHeader className="text-center pb-8">
+            <div className="mx-auto mb-6">
+              <img 
+                src="/lovable-uploads/294e10b5-7f21-4845-ba93-41ffe4067211.png" 
+                alt="HGTX Intelligence Logo" 
+                className="w-20 h-20 object-contain mx-auto"
+              />
+            </div>
+            <CardTitle className="text-2xl font-bold">Recuperar Senha</CardTitle>
+            <CardDescription className="text-muted-foreground">
+              Digite seu email para receber as instruções de recuperação
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleForgotPassword} className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="resetEmail">E-mail</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                  <Input
+                    id="resetEmail"
+                    type="email"
+                    placeholder="seu@email.com"
+                    value={resetEmail}
+                    onChange={(e) => setResetEmail(e.target.value)}
+                    className="pl-10"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <Button
+                  type="submit"
+                  className="w-full bg-gradient-whatsapp hover:bg-whatsapp-hover text-whatsapp-foreground shadow-lg hover:shadow-xl transition-all duration-300"
+                  disabled={isResetLoading}
+                >
+                  {isResetLoading ? "Enviando..." : "Enviar Email de Recuperação"}
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="w-full"
+                  onClick={() => setShowForgotPassword(false)}
+                >
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Voltar ao Login
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-primary/10 flex items-center justify-center p-4">
@@ -134,6 +235,7 @@ export default function Login() {
                   <button
                     type="button"
                     className="text-sm text-primary hover:text-primary-hover transition-colors"
+                    onClick={() => setShowForgotPassword(true)}
                   >
                     Esqueci minha senha
                   </button>

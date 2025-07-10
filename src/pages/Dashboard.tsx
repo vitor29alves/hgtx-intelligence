@@ -6,8 +6,10 @@ import { DashboardHeader } from "@/components/DashboardHeader";
 import { Atendimentos } from "@/components/Atendimentos";
 import { Contatos } from "@/components/Contatos";
 import { CRM } from "@/components/CRM";
+import { Campanhas } from "@/components/Campanhas";
 import { Relatorios } from "@/components/Relatorios";
 import { Configuracoes } from "@/components/Configuracoes";
+import { UserProfile } from "@/components/UserProfile";
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("atendimentos");
@@ -20,10 +22,14 @@ export default function Dashboard() {
         return <Contatos />;
       case "crm":
         return <CRM />;
+      case "campanhas":
+        return <Campanhas />;
       case "relatorios":
         return <Relatorios />;
       case "configuracoes":
         return <Configuracoes />;
+      case "perfil":
+        return <UserProfile />;
       default:
         return <Atendimentos />;
     }

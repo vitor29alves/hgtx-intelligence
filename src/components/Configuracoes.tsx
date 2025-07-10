@@ -37,8 +37,11 @@ import {
   Edit, 
   Trash2,
   Shield,
-  Settings
+  Settings,
+  Smartphone,
+  MessageSquare
 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 const mockUsers = [
   { id: "1", name: "João Silva", email: "joao@empresa.com", team: "Vendas", role: "Atendente", status: true },
@@ -52,9 +55,95 @@ const mockTeams = [
   { id: "3", name: "Cobrança", description: "Equipe de cobrança e financeiro", members: 3, supervisor: "Lucia Oliveira" },
 ];
 
+const mockChannels = [
+  { id: "1", name: "WhatsApp Principal", type: "WhatsApp API Oficial", status: "Conectado", phone: "+55 11 99999-9999" },
+  { id: "2", name: "WhatsApp Vendas", type: "WhatsApp API Não Oficial", status: "Conectado", phone: "+55 11 88888-8888" },
+  { id: "3", name: "Instagram Oficial", type: "Instagram", status: "Desconectado", phone: "@empresa" },
+];
+
+const mockTemplates = [
+  { id: "1", name: "Boas-vindas", content: "Olá! Bem-vindo à nossa empresa. Como podemos ajudá-lo hoje?", category: "Atendimento" },
+  { id: "2", name: "Oferta Especial", content: "🎉 Oferta especial! Desconto de 20% em todos os produtos. Use o código: PROMO20", category: "Marketing" },
+  { id: "3", name: "Carrinho Abandonado", content: "Você esqueceu alguns itens no seu carrinho. Finalize sua compra agora!", category: "E-commerce" },
+];
+
 export function Configuracoes() {
   const [isUserDialogOpen, setIsUserDialogOpen] = useState(false);
   const [isTeamDialogOpen, setIsTeamDialogOpen] = useState(false);
+  const [isChannelDialogOpen, setIsChannelDialogOpen] = useState(false);
+  const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false);
+  const [channels, setChannels] = useState(mockChannels);
+  const [templates, setTemplates] = useState(mockTemplates);
+  const [channelForm, setChannelForm] = useState({ name: "", type: "", phone: "" });
+  const [templateForm, setTemplateForm] = useState({ name: "", content: "", category: "" });
+  const { toast } = useToast();
+
+  const handleChannelSubmit = () => {
+    if (!channelForm.name || !channelForm.type) {
+      toast({
+        title: "Campos obrigatórios",
+        description: "Nome e tipo são obrigatórios",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const newChannel = {
+      id: Date.now().toString(),
+      ...channelForm,
+      status: "Desconectado"
+    };
+
+    setChannels(prev => [...prev, newChannel]);
+    setChannelForm({ name: "", type: "", phone: "" });
+    setIsChannelDialogOpen(false);
+    
+    toast({
+      title: "Canal criado!",
+      description: "O canal foi criado com sucesso",
+    });
+  };
+
+  const handleTemplateSubmit = () => {
+    if (!templateForm.name || !templateForm.content) {
+      toast({
+        title: "Campos obrigatórios",
+        description: "Nome e conteúdo são obrigatórios",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const newTemplate = {
+      id: Date.now().toString(),
+      ...templateForm
+    };
+
+    setTemplates(prev => [...prev, newTemplate]);
+    setTemplateForm({ name: "", content: "", category: "" });
+    setIsTemplateDialogOpen(false);
+    
+    toast({
+      title: "Modelo criado!",
+      description: "O modelo de mensagem foi criado com sucesso",
+    });
+  };
+
+  const handleDeleteChannel = (id: string) => {
+    setChannels(prev => prev.filter(c => c.id !== id));
+    toast({
+      title: "Canal excluído!",
+      description: "O canal foi excluído com sucesso",
+    });
+  };
+
+  const handleDeleteTemplate = (id: string) => {
+    setTemplates(prev => prev.filter(t => t.id !== id));
+    toast({
+      title: "Modelo excluído!",
+      description: "O modelo foi excluído com sucesso",
+    });
+  };
 
   return (
     <div className="p-6 space-y-6">
@@ -68,7 +157,7 @@ export function Configuracoes() {
       </div>
 
       <Tabs defaultValue="usuarios" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="usuarios" className="flex items-center gap-2">
             <Users className="w-4 h-4" />
             Usuários
@@ -76,6 +165,14 @@ export function Configuracoes() {
           <TabsTrigger value="equipes" className="flex items-center gap-2">
             <Shield className="w-4 h-4" />
             Equipes
+          </TabsTrigger>
+          <TabsTrigger value="canais" className="flex items-center gap-2">
+            <Smartphone className="w-4 h-4" />
+            Canais
+          </TabsTrigger>
+          <TabsTrigger value="modelos" className="flex items-center gap-2">
+            <MessageSquare className="w-4 h-4" />
+            Modelos
           </TabsTrigger>
           <TabsTrigger value="conta" className="flex items-center gap-2">
             <Building2 className="w-4 h-4" />
@@ -87,7 +184,6 @@ export function Configuracoes() {
           </TabsTrigger>
         </TabsList>
 
-        {/* Tab Usuários */}
         <TabsContent value="usuarios" className="space-y-6">
           <Card>
             <CardHeader>
@@ -218,7 +314,6 @@ export function Configuracoes() {
           </Card>
         </TabsContent>
 
-        {/* Tab Equipes */}
         <TabsContent value="equipes" className="space-y-6">
           <Card>
             <CardHeader>
@@ -308,7 +403,211 @@ export function Configuracoes() {
           </Card>
         </TabsContent>
 
-        {/* Tab Conta */}
+        <TabsContent value="canais" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <Smartphone className="w-5 h-5" />
+                  Canais de Atendimento ({channels.length})
+                </CardTitle>
+                <Dialog open={isChannelDialogOpen} onOpenChange={setIsChannelDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button>
+                      <Plus className="w-4 h-4 mr-2" />
+                      Novo Canal
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Novo Canal de Atendimento</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label>Nome do canal</Label>
+                        <Input 
+                          placeholder="Ex: WhatsApp Principal" 
+                          value={channelForm.name}
+                          onChange={(e) => setChannelForm(prev => ({...prev, name: e.target.value}))}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Tipo de canal</Label>
+                        <Select value={channelForm.type} onValueChange={(value) => setChannelForm(prev => ({...prev, type: value}))}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione o tipo" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="WhatsApp API Oficial">WhatsApp API Oficial</SelectItem>
+                            <SelectItem value="WhatsApp API Não Oficial">WhatsApp API Não Oficial</SelectItem>
+                            <SelectItem value="Instagram">Instagram</SelectItem>
+                            <SelectItem value="Messenger">Messenger</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Telefone/Username</Label>
+                        <Input 
+                          placeholder="Ex: +55 11 99999-9999 ou @username" 
+                          value={channelForm.phone}
+                          onChange={(e) => setChannelForm(prev => ({...prev, phone: e.target.value}))}
+                        />
+                      </div>
+                      <div className="flex gap-2 pt-4">
+                        <Button variant="outline" className="flex-1" onClick={() => setIsChannelDialogOpen(false)}>
+                          Cancelar
+                        </Button>
+                        <Button className="flex-1" onClick={handleChannelSubmit}>
+                          Salvar
+                        </Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Nome</TableHead>
+                    <TableHead>Tipo</TableHead>
+                    <TableHead>Telefone/Username</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {channels.map((channel) => (
+                    <TableRow key={channel.id}>
+                      <TableCell className="font-medium">{channel.name}</TableCell>
+                      <TableCell>{channel.type}</TableCell>
+                      <TableCell>{channel.phone}</TableCell>
+                      <TableCell>
+                        <Badge variant={channel.status === 'Conectado' ? 'default' : 'secondary'}>
+                          {channel.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <Button variant="ghost" size="sm">
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={() => handleDeleteChannel(channel.id)}>
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="modelos" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <MessageSquare className="w-5 h-5" />
+                  Modelos de Mensagem ({templates.length})
+                </CardTitle>
+                <Dialog open={isTemplateDialogOpen} onOpenChange={setIsTemplateDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button>
+                      <Plus className="w-4 h-4 mr-2" />
+                      Novo Modelo
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Novo Modelo de Mensagem</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label>Nome do modelo</Label>
+                        <Input 
+                          placeholder="Ex: Boas-vindas" 
+                          value={templateForm.name}
+                          onChange={(e) => setTemplateForm(prev => ({...prev, name: e.target.value}))}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Categoria</Label>
+                        <Select value={templateForm.category} onValueChange={(value) => setTemplateForm(prev => ({...prev, category: value}))}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione uma categoria" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Atendimento">Atendimento</SelectItem>
+                            <SelectItem value="Marketing">Marketing</SelectItem>
+                            <SelectItem value="E-commerce">E-commerce</SelectItem>
+                            <SelectItem value="Suporte">Suporte</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Conteúdo da mensagem</Label>
+                        <Textarea 
+                          placeholder="Digite o conteúdo da mensagem..." 
+                          value={templateForm.content}
+                          onChange={(e) => setTemplateForm(prev => ({...prev, content: e.target.value}))}
+                          className="min-h-[100px]"
+                        />
+                      </div>
+                      <div className="flex gap-2 pt-4">
+                        <Button variant="outline" className="flex-1" onClick={() => setIsTemplateDialogOpen(false)}>
+                          Cancelar
+                        </Button>
+                        <Button className="flex-1" onClick={handleTemplateSubmit}>
+                          Salvar
+                        </Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Nome</TableHead>
+                    <TableHead>Categoria</TableHead>
+                    <TableHead>Conteúdo</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {templates.map((template) => (
+                    <TableRow key={template.id}>
+                      <TableCell className="font-medium">{template.name}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline">{template.category}</Badge>
+                      </TableCell>
+                      <TableCell className="max-w-md">
+                        <div className="truncate">{template.content}</div>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <Button variant="ghost" size="sm">
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={() => handleDeleteTemplate(template.id)}>
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         <TabsContent value="conta" className="space-y-6">
           <Card>
             <CardHeader>
@@ -354,7 +653,6 @@ export function Configuracoes() {
           </Card>
         </TabsContent>
 
-        {/* Tab Horários */}
         <TabsContent value="horarios" className="space-y-6">
           <Card>
             <CardHeader>

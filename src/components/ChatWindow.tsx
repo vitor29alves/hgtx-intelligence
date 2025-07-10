@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -57,6 +56,8 @@ interface Message {
 
 interface ChatWindowProps {
   contactId: string;
+  showContactDetails: boolean;
+  onToggleContactDetails: () => void;
 }
 
 const mockMessages: Message[] = [
@@ -98,12 +99,11 @@ const mockTeams = [
   { id: "3", name: "Financeiro", type: "team" },
 ];
 
-export function ChatWindow({ contactId }: ChatWindowProps) {
+export function ChatWindow({ contactId, showContactDetails, onToggleContactDetails }: ChatWindowProps) {
   const [message, setMessage] = useState("");
   const [status, setStatus] = useState("andamento");
   const [showTransferDialog, setShowTransferDialog] = useState(false);
   const [showConcludeDialog, setShowConcludeDialog] = useState(false);
-  const [showContactDetails, setShowContactDetails] = useState(true);
   const [transferTo, setTransferTo] = useState("");
   const [transferType, setTransferType] = useState<"agent" | "team">("agent");
   const [transferNotes, setTransferNotes] = useState("");
@@ -260,7 +260,8 @@ export function ChatWindow({ contactId }: ChatWindowProps) {
             <Button 
               variant="ghost" 
               size="sm"
-              onClick={() => setShowContactDetails(!showContactDetails)}
+              onClick={onToggleContactDetails}
+              title={showContactDetails ? "Ocultar detalhes do contato" : "Exibir detalhes do contato"}
             >
               {showContactDetails ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </Button>

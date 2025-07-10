@@ -11,6 +11,10 @@ export function Atendimentos() {
   const [selectedContact, setSelectedContact] = useState<string | null>(null);
   const [showContactDetails, setShowContactDetails] = useState(true);
 
+  const handleToggleContactDetails = () => {
+    setShowContactDetails(!showContactDetails);
+  };
+
   return (
     <div className="h-screen flex bg-background overflow-hidden">
       {/* Coluna 1 - Lista de Conversas */}
@@ -60,7 +64,11 @@ export function Atendimentos() {
       {/* Coluna 2 - Chat Ativo */}
       <div className="flex-1 flex flex-col min-h-0">
         {selectedContact ? (
-          <ChatWindow contactId={selectedContact} />
+          <ChatWindow 
+            contactId={selectedContact} 
+            showContactDetails={showContactDetails}
+            onToggleContactDetails={handleToggleContactDetails}
+          />
         ) : (
           <div className="flex-1 flex items-center justify-center bg-muted/20">
             <Card className="w-96 text-center">
